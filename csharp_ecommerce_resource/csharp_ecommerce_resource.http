@@ -1,0 +1,6 @@
+@csharp_ecommerce_resource_HostAddress = http://localhost:5201
+
+GET {{csharp_ecommerce_resource_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,19 @@
+### GET request to example server
+GET http://localhost:5201/api/Account
+Accept: application/json
+
+###
+POST http://localhost:5201/api/Account
+Content-Type: application/json
+Accept: application/json
+
+{
+  "AccountType": "Personal",
+  "CompanyName": "My Company Name",
+  "FirstName": "My_First_Name",
+  "LastName": "My_Last_Name",
+  "PhoneNumber": "000-000-0000",
+  "Email": "first.last@email.com"
+}
+
+###
