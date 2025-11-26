@@ -1,6 +1,6 @@
-namespace csharp_ecommerce_resource.Models;
+namespace csharp_ecommerce_resource.Accounts;
 
-public class Account
+public class AccountDto
 {
     public string? Id { get; set; }
     public DateTime? Timestamp { get; set; }
@@ -10,4 +10,5 @@ public class Account
     public string? LastName { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
+    public string? Active { get; set; }
 }

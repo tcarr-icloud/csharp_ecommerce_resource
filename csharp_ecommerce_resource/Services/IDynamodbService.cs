@@ -3,13 +3,14 @@ using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
-using csharp_ecommerce_resource.Models;
+using csharp_ecommerce_resource.Accounts;
 
 namespace csharp_ecommerce_resource.Services;
 
 public interface IDynamodbService
 {
-    void AddAccountAsync(Account account);
+    void AddAccountAsync(AccountDto accountDto);
+    List<Dictionary<string, AttributeValue>> GetAccount(string id);
 }
 
 public class DynamoDbService : IDynamodbService
@@ -21,19 +22,20 @@ public class DynamoDbService : IDynamodbService
 
     private readonly BasicAWSCredentials _credentials = new("DUMMYIDEXAMPLE", "DUMMYEXAMPLEKEY");
 
-    public void AddAccountAsync(Account account)
+    public void AddAccountAsync(AccountDto accountDto)
     {
         var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
         var accountItem = new Dictionary<string, AttributeValue>
         {
-            { "Id", new AttributeValue { S = account.Id } },
-            { "Timestamp", new AttributeValue { S = account.Timestamp.ToString() } },
-            { "AccountType", new AttributeValue { S = account.AccountType } },
-            { "CompanyName", new AttributeValue { S = account.CompanyName } },
-            { "FirstName", new AttributeValue { S = account.FirstName } },
-            { "LastName", new AttributeValue { S = account.LastName } },
-            { "PhoneNumber", new AttributeValue { S = account.PhoneNumber } },
-            { "Email", new AttributeValue { S = account.Email } }
+            { "Id", new AttributeValue { S = accountDto.Id } },
+            { "Timestamp", new AttributeValue { S = accountDto.Timestamp.ToString() } },
+            { "AccountType", new AttributeValue { S = accountDto.AccountType } },
+            { "CompanyName", new AttributeValue { S = accountDto.CompanyName } },
+            { "FirstName", new AttributeValue { S = accountDto.FirstName } },
+            { "LastName", new AttributeValue { S = accountDto.LastName } },
+            { "PhoneNumber", new AttributeValue { S = accountDto.PhoneNumber } },
+            { "Email", new AttributeValue { S = accountDto.Email } },
+            { "Active", new AttributeValue { BOOL = accountDto.Active?.Equals("true") } }
         };
 
         var request = new PutItemRequest
@@ -44,5 +46,26 @@ public class DynamoDbService : IDynamodbService
 
         var putItemResponse = dynamoDbClient.PutItemAsync(request).Result;
         if (putItemResponse.HttpStatusCode != HttpStatusCode.OK) throw new Exception("Failed to add item.");
+    }
+
+    public List<Dictionary<string, AttributeValue>> GetAccount(string id)
+    {
+        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
+        var tableName = AccountsTableName;
+        var partitionKeyValue = id;
+
+        var request = new QueryRequest
+        {
+            TableName = tableName,
+            KeyConditionExpression = "Id = :id",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                { ":id", new AttributeValue { S = partitionKeyValue } }
+            }
+        };
+
+        var response = dynamoDbClient.QueryAsync(request).Result;
+        if (response.HttpStatusCode != HttpStatusCode.OK) throw new Exception("Failed to retrieve account.");
+        return response.Items;
     }
 }

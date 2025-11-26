@@ -1,4 +1,4 @@
-namespace csharp_ecommerce_resource.Models;
+namespace csharp_ecommerce_resource.Accounts;
 
 public enum AccountType
 {

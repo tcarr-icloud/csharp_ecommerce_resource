@@ -1,25 +1,24 @@
 using Confluent.Kafka;
-using csharp_ecommerce_resource.Models;
 
 namespace csharp_ecommerce_resource.Services;
 
-public class KafkaConsumerService<T> : BackgroundService
+public class ConsumerService<T> : BackgroundService
 {
     private readonly ConsumerConfig _consumerConfig;
-    private readonly ILogger<KafkaConsumerService<T>> _logger;
+    private readonly ILogger<ConsumerService<T>> _logger;
     private readonly IProcessor<T> _processor;
     private readonly string? _topic;
 
-    public KafkaConsumerService(HostedConsumerServiceConfiguration hostedConsumerServiceConfiguration,
-        IProcessor<T> processor, ILogger<KafkaConsumerService<T>> logger, IConfiguration configuration)
+    public ConsumerService(ConsumerServiceConfiguration consumerServiceConfiguration,
+        IProcessor<T> processor, ILogger<ConsumerService<T>> logger)
     {
         _processor = processor;
-        _topic = hostedConsumerServiceConfiguration.Topic;
+        _topic = consumerServiceConfiguration.Topic;
         _logger = logger;
         _consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = hostedConsumerServiceConfiguration.BootstrapServers,
-            GroupId = hostedConsumerServiceConfiguration.GroupId,
+            BootstrapServers = consumerServiceConfiguration.BootstrapServers,
+            GroupId = consumerServiceConfiguration.GroupId,
             AutoOffsetReset = AutoOffsetReset.Earliest,
             EnableAutoCommit = false
         };
@@ -55,4 +54,11 @@ public class KafkaConsumerService<T> : BackgroundService
             consumer.Close();
         }
     }
+}
+
+public class ConsumerServiceConfiguration
+{
+    public string? Topic { get; set; }
+    public string? BootstrapServers { get; set; }
+    public string? GroupId { get; set; }
 }
