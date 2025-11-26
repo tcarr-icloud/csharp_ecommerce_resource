@@ -4,3 +4,5 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .idea
+.vs
+csharp_ecommerce_resource.csproj.user
