@@ -4,18 +4,18 @@ namespace csharp_ecommerce_resource.Accounts;
 
 public interface IAccountService
 {
-    AccountDto AddAccount(AccountDto accountDto, string action = "AddAccount");
+    AccountDto CreateAccount(AccountDto accountDto, string action = "CreateAccount");
+    AccountDto GetAccount(string id, string action = "GetAccount");
+    AccountDto[] GetAllAccounts(string action = "GetAllAccounts");
     AccountDto UpdateAccount(string id, AccountDto accountDto, string action = "UpdateAccount");
-    AccountDto GetAccount(string id);
     void DeleteAccount(string id, string action = "DeleteAccount");
-    List<AccountDto> GetAllAccounts();
 }
 
 public class AccountService(
     IDynamodbService dynamodbService,
     IKafkaProducerService kafkaProducerService) : IAccountService
 {
-    public AccountDto AddAccount(AccountDto accountDto, string action = "AddAccount")
+    public AccountDto CreateAccount(AccountDto accountDto, string action = "CreateAccount")
     {
         if (accountDto.Id != null) throw new Exception("AccountDto ID cannot be set manually.");
         accountDto.Id = Guid.NewGuid().ToString();
@@ -29,7 +29,7 @@ public class AccountService(
         return accountDto;
     }
 
-    public AccountDto GetAccount(string id)
+    public AccountDto GetAccount(string id, string action = "GetAccount")
     {
         var accountDto = new AccountDto();
         dynamodbService.GetEvents("accounts", id).ForEach(attributeValues =>
@@ -47,7 +47,7 @@ public class AccountService(
         return accountDto;
     }
 
-    public List<AccountDto> GetAllAccounts()
+    public AccountDto[] GetAllAccounts(string action = "GetAllAccounts")
     {
         throw new NotImplementedException();
     }

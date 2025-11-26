@@ -14,7 +14,7 @@ public interface IDynamodbService
 {
     Dictionary<string, AttributeValue> AddCartAsync(CartDto cartDto);
     Dictionary<string, AttributeValue> AddAccountAsync(AccountDto accountDto);
-    Dictionary<string, AttributeValue> AddOderAsync(OrderDto orderDto);
+    Dictionary<string, AttributeValue> AddOrderAsync(OrderDto orderDto);
     List<Dictionary<string, AttributeValue>> GetEvents(string tableName, string id);
 }
 
@@ -119,7 +119,7 @@ public class DynamoDbService : IDynamodbService
             : accountItem;
     }
 
-    public Dictionary<string, AttributeValue> AddOderAsync(OrderDto orderDto)
+    public Dictionary<string, AttributeValue> AddOrderAsync(OrderDto orderDto)
     {
         var orderItem = new Dictionary<string, AttributeValue>
         {

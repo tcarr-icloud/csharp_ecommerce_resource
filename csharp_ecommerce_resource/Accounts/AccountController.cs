@@ -9,7 +9,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
     [HttpPost]
     public ActionResult<AccountDto> AddAccount([FromBody] AccountDto accountDto)
     {
-        accountService.AddAccount(accountDto);
+        accountService.CreateAccount(accountDto);
         var resourceUri = Url.Action(nameof(GetAccount), "Account", new { id = accountDto.Id });
         return Created(resourceUri, accountDto);
     }
