@@ -4,37 +4,64 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "AccountType": "Personal",
-  "CompanyName": "My Company Name",
+  "Id": null,
+  "Timestamp": null,
   "FirstName": "My_First_Name",
   "LastName": "My_Last_Name",
   "PhoneNumber": "000-000-0000",
   "Email": "first.last@email.com",
-  "Active": "true"
+  "Type": "Personal",
+  "Active": true
 }
+> {%
+    client.global.set("account_id", response.body.id)
+%}
 
 ###
-PUT localhost:5201/api/Account/465537d1-d5a2-4e4a-861d-7df332547fe1
+PUT localhost:5201/api/Account/{{account_id}}
 Content-Type: application/json
 Accept: application/json
 
 {
-  "Id": "465537d1-d5a2-4e4a-861d-7df332547fe1",
-  "AccountType": "Personal",
+  "Id": "{{account_id}}",
+  "Timestamp": null,
   "CompanyName": "My Company Name",
   "FirstName": "First",
   "LastName": "Last",
   "PhoneNumber": "000-000-0000",
   "Email": "first.last@email.com",
-  "Active": "true"
+  "Type": "Personal",
+  "Active": true
 }
 
 ###
-GET localhost:5201/api/Account/465537d1-d5a2-4e4a-861d-7df332547fe1
+GET localhost:5201/api/Account/{{account_id}}
 Accept: application/json
 
 ###
-DELETE localhost:5201/api/Account/465537d1-d5a2-4e4a-861d-7df332547fe1
+DELETE localhost:5201/api/Account/{{account_id}}
+Accept: application/json
+
+###
+POST localhost:5201/api/cart
+Content-Type: application/json
+Accept: application/json
+
+{
+  "Id": null,
+  "Timestamp": null,
+  "AccountId": "{{account_id}}",
+  "Items": null,
+  "Active": true
+}
+> {% client.global.set("cart_id", response.body.id) %}
+
+###
+GET localhost:5201/api/cart/{{cart_id}}
+Accept: application/json
+
+###
+DELETE localhost:5201/api/cart/{{cart_id}}
 Accept: application/json
 
 ###

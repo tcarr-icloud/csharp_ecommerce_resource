@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using csharp_ecommerce_resource.Accounts;
+using csharp_ecommerce_resource.Carts;
 using csharp_ecommerce_resource.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,8 +11,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 builder.Services.AddSingleton<IAccountService, AccountService>();
+builder.Services.AddSingleton<ICartService, CartService>();
 builder.Services.AddSingleton<IDynamodbService, DynamoDbService>();
-builder.Services.AddSingleton<IKafkaAccountsProducerService, KafkaAccountsProducerService>();
+builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
 
 builder.Services.AddSingleton<IProcessor<AccountMessage>, AccountProcessor>();
 builder.Services.AddHostedService<ConsumerService<AccountMessage>>(sp => new ConsumerService<AccountMessage>(

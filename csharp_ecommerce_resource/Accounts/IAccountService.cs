@@ -4,18 +4,18 @@ namespace csharp_ecommerce_resource.Accounts;
 
 public interface IAccountService
 {
-    AccountDto AddAccount(AccountDto accountDto);
+    AccountDto AddAccount(AccountDto accountDto, string action = "AddAccount");
     AccountDto UpdateAccount(string id, AccountDto accountDto, string action = "UpdateAccount");
     AccountDto GetAccount(string id);
-    void DeleteAccount(string id);
+    void DeleteAccount(string id, string action = "DeleteAccount");
     List<AccountDto> GetAllAccounts();
 }
 
 public class AccountService(
     IDynamodbService dynamodbService,
-    IKafkaAccountsProducerService kafkaAccountsProducerService) : IAccountService
+    IKafkaProducerService kafkaProducerService) : IAccountService
 {
-    public AccountDto AddAccount(AccountDto accountDto)
+    public AccountDto AddAccount(AccountDto accountDto, string action = "AddAccount")
     {
         if (accountDto.Id != null) throw new Exception("AccountDto ID cannot be set manually.");
         accountDto.Id = Guid.NewGuid().ToString();
@@ -24,27 +24,27 @@ public class AccountService(
         accountDto.Timestamp = DateTime.UtcNow;
 
         dynamodbService.AddAccountAsync(accountDto);
-        kafkaAccountsProducerService.SendAccountEvent("AddAccount", accountDto);
+        kafkaProducerService.SendAccountEvent(action, accountDto);
 
         return accountDto;
     }
 
     public AccountDto GetAccount(string id)
     {
-        var account = new AccountDto();
-        dynamodbService.GetAccount(id).ForEach(attributeValues =>
+        var accountDto = new AccountDto();
+        dynamodbService.GetEvents("accounts", id).ForEach(attributeValues =>
         {
-            account.Id = attributeValues["Id"].S;
-            account.Timestamp = DateTime.Parse(attributeValues["Timestamp"].S);
-            account.AccountType = attributeValues["AccountType"].S;
-            account.CompanyName = attributeValues["CompanyName"].S;
-            account.FirstName = attributeValues["FirstName"].S;
-            account.LastName = attributeValues["LastName"].S;
-            account.PhoneNumber = attributeValues["PhoneNumber"].S;
-            account.Email = attributeValues["Email"].S;
-            account.Active = attributeValues["Active"].BOOL.ToString();
+            accountDto.Id = attributeValues["Id"].S;
+            accountDto.Timestamp = DateTime.Parse(attributeValues["Timestamp"].S);
+            accountDto.CompanyName = attributeValues["CompanyName"].S;
+            accountDto.FirstName = attributeValues["FirstName"].S;
+            accountDto.LastName = attributeValues["LastName"].S;
+            accountDto.PhoneNumber = attributeValues["PhoneNumber"].S;
+            accountDto.Email = attributeValues["Email"].S;
+            accountDto.Type = attributeValues["Type"].S;
+            accountDto.Active = attributeValues["Active"].BOOL;
         });
-        return account;
+        return accountDto;
     }
 
     public List<AccountDto> GetAllAccounts()
@@ -59,16 +59,16 @@ public class AccountService(
         accountDto.Timestamp = DateTime.UtcNow;
 
         dynamodbService.AddAccountAsync(accountDto);
-        kafkaAccountsProducerService.SendAccountEvent(action, accountDto);
+        kafkaProducerService.SendAccountEvent(action, accountDto);
 
         return accountDto;
     }
 
-    public void DeleteAccount(string id)
+    public void DeleteAccount(string id, string action = "DeleteAccount")
     {
         var accountDto = GetAccount(id);
-        accountDto.Active = false.ToString();
+        accountDto.Active = false;
         accountDto.Timestamp = null;
-        UpdateAccount(id, accountDto, "DeleteAccount");
+        UpdateAccount(id, accountDto, action);
     }
 }

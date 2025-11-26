@@ -12,7 +12,14 @@ public class AccountProcessor : IProcessor<AccountMessage>
 {
     public void HandleMessage(string message)
     {
-        var accountMessage = JsonSerializer.Deserialize<AccountMessage>(message);
-        Console.WriteLine("HandleMessage: " + accountMessage?.AccountDto?.Id);
+        try
+        {
+            var accountMessage = JsonSerializer.Deserialize<AccountMessage>(message);
+            Console.WriteLine("HandleMessage: " + accountMessage?.AccountDto?.Id);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("HandleMessage exception: " + e.Message);
+        }
     }
 }
