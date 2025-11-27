@@ -65,3 +65,20 @@ DELETE localhost:5201/api/cart/{{cart_id}}
 Accept: application/json
 
 ###
+POST localhost:5201/api/Order
+Accept: application/json
+Content-Type: application/json
+
+{
+  "AccountId": "{{account_id}}",
+  "CartId": "{{cart_id}}",
+  "Status": "New",
+  "Active": true
+}
+> {% client.global.set("order_id", response.body.id) %}
+
+###
+GET localhost:5201/api/Order/{{order_id}}
+Accept: application/json
+
+###

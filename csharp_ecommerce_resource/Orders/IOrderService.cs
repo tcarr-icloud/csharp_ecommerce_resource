@@ -36,18 +36,10 @@ public class OrderService(
         {
             orderDto.Id = attributeValues["Id"].S;
             orderDto.Timestamp = DateTime.Parse(attributeValues["Timestamp"].S);
-            orderDto.AccountId = attributeValues.TryGetValue("AccountId", out var accountIdValue)
-                ? accountIdValue.NULL == true ? accountIdValue.S : null
-                : null;
-            orderDto.CartId = attributeValues.TryGetValue("CartId", out var cartIdValue)
-                ? cartIdValue.NULL == true ? cartIdValue.S : null
-                : null;
-            orderDto.Status = attributeValues.TryGetValue("Status", out var statusValue)
-                ? statusValue.NULL == true ? statusValue.S : null
-                : null;
-            orderDto.Active = attributeValues.TryGetValue("Active", out var activeValue)
-                ? activeValue.NULL == true ? activeValue.BOOL : null
-                : false;
+            orderDto.AccountId = attributeValues["AccountId"].NULL == true ? null : attributeValues["AccountId"].S;
+            orderDto.CartId = attributeValues["CartId"].NULL == true ? null : attributeValues["CartId"].S;
+            orderDto.Status = attributeValues["Status"].NULL == true ? null : attributeValues["Status"].S;
+            orderDto.Active = attributeValues["Active"].NULL == true ? null : attributeValues["Active"].BOOL;
         });
         return orderDto;
     }
