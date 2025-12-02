@@ -9,9 +9,16 @@ public class AccountController(IAccountService accountService) : ControllerBase
     [HttpPost]
     public ActionResult<AccountDto> AddAccount([FromBody] AccountDto accountDto)
     {
-        accountService.CreateAccount(accountDto);
-        var resourceUri = Url.Action(nameof(GetAccount), "Account", new { id = accountDto.Id });
-        return Created(resourceUri, accountDto);
+        try
+        {
+            accountService.CreateAccount(accountDto);
+            var resourceUri = Url.Action(nameof(GetAccount), "Account", new { id = accountDto.Id });
+            return Created(resourceUri, accountDto);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpGet("{id}")]

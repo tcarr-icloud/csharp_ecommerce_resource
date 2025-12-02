@@ -16,6 +16,8 @@ public interface IDynamodbService
     Dictionary<string, AttributeValue> AddAccountAsync(AccountDto accountDto);
     Dictionary<string, AttributeValue> AddOrderAsync(OrderDto orderDto);
     List<Dictionary<string, AttributeValue>> GetEvents(string tableName, string id);
+    HashSet<string> GetAccountByEmail(string email);
+
 }
 
 public class DynamoDbService : IDynamodbService
@@ -171,5 +173,21 @@ public class DynamoDbService : IDynamodbService
         return response.HttpStatusCode != HttpStatusCode.OK
             ? throw new Exception("Failed to retrieve events.")
             : response.Items;
+    }
+
+    public HashSet<string> GetAccountByEmail(string email)
+    {
+        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
+        var request = new ScanRequest
+        {
+            TableName = AccountsTableName, 
+            FilterExpression = "Email = :email",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                { { ":email", new AttributeValue { S = email } } }
+        };
+        var response = dynamoDbClient.ScanAsync(request).Result;
+        HashSet<string> ids = new HashSet<string>();
+        response.Items.ForEach(item => ids.Add(item["Id"].S));
+        return ids;
     }
 }
