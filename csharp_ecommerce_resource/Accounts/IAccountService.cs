@@ -61,16 +61,13 @@ public class AccountService(
     {
         if (accountDto.Id == null) throw new Exception("AccountDto ID cannot be null.");
         var existingAccount = GetAccount(id);
-        if (accountDto.Email != existingAccount.Email)
-        {
-            var ids = dynamodbService.GetAccountByEmail(accountDto.Email);
-            if (ids.Count > 0) throw new Exception("Account with email already exists.");
-        }
-        
+        if (accountDto.Email != null && accountDto.Email != existingAccount.Email)
+            if (dynamodbService.GetAccountByEmail(accountDto.Email).Count > 0)
+                throw new Exception("Account with email already exists.");
+
         if (accountDto.Timestamp != null) throw new Exception("AccountDto timestamp cannot be set manually.");
         accountDto.Timestamp = DateTime.UtcNow;
-
-
+        
         dynamodbService.AddAccountAsync(accountDto);
         kafkaProducerService.SendAccountEvent(action, accountDto);
 
