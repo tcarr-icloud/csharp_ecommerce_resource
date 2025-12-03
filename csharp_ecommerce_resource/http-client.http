@@ -82,3 +82,7 @@ GET localhost:5201/api/Order/{{order_id}}
 Accept: application/json
 
 ###
+DELETE localhost:5201/api/Account/9c72b460-4c2e-4fa2-8152-d8f490003df5
+Accept: application/json
+
+###

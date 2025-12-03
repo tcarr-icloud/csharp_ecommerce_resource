@@ -21,7 +21,7 @@ public class AccountService(
         accountDto.Id = Guid.NewGuid().ToString();
 
         if (accountDto.Timestamp != null) throw new Exception("AccountDto timestamp cannot be set manually.");
-        accountDto.Timestamp = DateTime.UtcNow;
+        accountDto.Timestamp = DateTime.UtcNow.ToBinary();
 
         if (accountDto.Email == null) throw new Exception("AccountDto email cannot be null.");
 
@@ -40,7 +40,7 @@ public class AccountService(
         dynamodbService.GetEvents("accounts", id).ForEach(attributeValues =>
         {
             accountDto.Id = attributeValues["Id"].S;
-            accountDto.Timestamp = DateTime.Parse(attributeValues["Timestamp"].S);
+            accountDto.Timestamp = long.Parse(attributeValues["Timestamp"].N);
             accountDto.CompanyName = attributeValues["CompanyName"].S;
             accountDto.FirstName = attributeValues["FirstName"].S;
             accountDto.LastName = attributeValues["LastName"].S;
@@ -66,7 +66,7 @@ public class AccountService(
                 throw new Exception("Account with email already exists.");
 
         if (accountDto.Timestamp != null) throw new Exception("AccountDto timestamp cannot be set manually.");
-        accountDto.Timestamp = DateTime.UtcNow;
+        accountDto.Timestamp = DateTime.UtcNow.ToBinary();
         
         dynamodbService.AddAccountAsync(accountDto);
         kafkaProducerService.SendAccountEvent(action, accountDto);
@@ -76,9 +76,12 @@ public class AccountService(
 
     public void DeleteAccount(string id, string action = "DeleteAccount")
     {
-        var accountDto = GetAccount(id);
-        accountDto.Active = false;
-        accountDto.Timestamp = null;
-        UpdateAccount(id, accountDto, action);
+        dynamodbService.GetEvents("accounts", id).ForEach(attributeValues =>
+        {
+            dynamodbService.DeleteItem(
+                "accounts", 
+                attributeValues["Id"].S, 
+                attributeValues["Timestamp"].S);
+        });
     }
 }

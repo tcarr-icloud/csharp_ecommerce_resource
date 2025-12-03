@@ -12,7 +12,7 @@ public class AccountDto
 
     [JsonPropertyName("id")] public string? Id { get; set; }
 
-    [JsonPropertyName("timestamp")] public DateTime? Timestamp { get; set; }
+    [JsonPropertyName("timestamp")] public long? Timestamp { get; set; }
 
     [JsonPropertyName("company_name")] public string? CompanyName { get; set; }
 

@@ -17,7 +17,7 @@ public interface IDynamodbService
     Dictionary<string, AttributeValue> AddOrderAsync(OrderDto orderDto);
     List<Dictionary<string, AttributeValue>> GetEvents(string tableName, string id);
     HashSet<string> GetAccountByEmail(string email);
-
+    void DeleteItem(string tableName, string partitionKey, string sortKey);
 }
 
 public class DynamoDbService : IDynamodbService
@@ -180,14 +180,47 @@ public class DynamoDbService : IDynamodbService
         var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
         var request = new ScanRequest
         {
-            TableName = AccountsTableName, 
+            TableName = AccountsTableName,
             FilterExpression = "Email = :email",
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 { { ":email", new AttributeValue { S = email } } }
         };
         var response = dynamoDbClient.ScanAsync(request).Result;
-        HashSet<string> ids = new HashSet<string>();
+        var ids = new HashSet<string>();
         response.Items.ForEach(item => ids.Add(item["Id"].S));
         return ids;
+    }
+
+    public void DeleteItem(string tableName, string partitionKey, string sortKey)
+    {
+        var request = new DeleteItemRequest
+        {
+            TableName = tableName,
+            Key = new Dictionary<string, AttributeValue>
+            {
+                { "Id", new AttributeValue { S = partitionKey }},
+                { "Timestamp", new AttributeValue { S = sortKey }}
+            }
+        };
+
+        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
+        var deleteResponse = dynamoDbClient.DeleteItemAsync(request).Result;
+        if (deleteResponse.HttpStatusCode != HttpStatusCode.OK)
+        {
+            throw new Exception("Failed to delete item.");
+        }
+    }
+    
+    public void DeleteAllItemsForPartitionKey(string tableName, string partitionKey)
+    {
+        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
+        var request = new ScanRequest
+        {
+            TableName = tableName, 
+            FilterExpression = "Id = :id", 
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue> { { ":id", new AttributeValue { S = partitionKey } } }
+        };
+        var response = dynamoDbClient.ScanAsync(request).Result;
+        response.Items.ForEach(item => DeleteItem(tableName, item["Id"].S, item["Timestamp"].S));
     }
 }
