@@ -31,7 +31,8 @@ public class AccountController(IAccountService accountService) : ControllerBase
     [HttpGet]
     public ActionResult<List<AccountDto>> GetAllAccounts()
     {
-        return Ok(new List<AccountDto>());
+        var accounts = accountService.GetAllAccounts();
+        return Ok(accounts);
     }
 
     [HttpPut("{id}")]

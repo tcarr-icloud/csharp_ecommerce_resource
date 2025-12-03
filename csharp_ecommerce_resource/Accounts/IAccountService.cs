@@ -1,3 +1,4 @@
+using Amazon.DynamoDBv2.Model;
 using csharp_ecommerce_resource.Services;
 
 namespace csharp_ecommerce_resource.Accounts;
@@ -6,7 +7,7 @@ public interface IAccountService
 {
     AccountDto CreateAccount(AccountDto accountDto, string action = "CreateAccount");
     AccountDto GetAccount(string id, string action = "GetAccount");
-    AccountDto[] GetAllAccounts(string action = "GetAllAccounts");
+    List<string> GetAllAccounts(string action = "GetAllAccounts");
     AccountDto UpdateAccount(string id, AccountDto accountDto, string action = "UpdateAccount");
     void DeleteAccount(string id, string action = "DeleteAccount");
 }
@@ -52,9 +53,17 @@ public class AccountService(
         return accountDto;
     }
 
-    public AccountDto[] GetAllAccounts(string action = "GetAllAccounts")
+    public List<string> GetAllAccounts(string action = "GetAllAccounts")
     {
-        throw new NotImplementedException();
+        var list = new List<string>();
+        var keys = dynamodbService.GetKeys("accounts", action);
+        foreach (var attributeValues in keys)
+        {
+            var key = attributeValues["Id"].S;
+            list.Add(key);
+        }
+
+        return list;
     }
 
     public AccountDto UpdateAccount(string id, AccountDto accountDto, string action = "UpdateAccount")

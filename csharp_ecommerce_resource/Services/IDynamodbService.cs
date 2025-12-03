@@ -18,6 +18,7 @@ public interface IDynamodbService
     List<Dictionary<string, AttributeValue>> GetEvents(string tableName, string id);
     HashSet<string> GetAccountByEmail(string email);
     void DeleteItem(string tableName, string partitionKey, string sortKey);
+    List<Dictionary<string, AttributeValue>> GetKeys(string accounts, string action);
 }
 
 public class DynamoDbService : IDynamodbService
@@ -210,7 +211,19 @@ public class DynamoDbService : IDynamodbService
             throw new Exception("Failed to delete item.");
         }
     }
-    
+
+    public List<Dictionary<string, AttributeValue>> GetKeys(string tableName, string action)
+    {
+        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
+        var request = new ScanRequest
+        {
+            TableName = tableName, 
+            ProjectionExpression = "Id"
+        };
+        var response = dynamoDbClient.ScanAsync(request).Result;
+        return response.Items;
+    }
+
     public void DeleteAllItemsForPartitionKey(string tableName, string partitionKey)
     {
         var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
