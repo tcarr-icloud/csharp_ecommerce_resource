@@ -14,13 +14,13 @@ public class AccountDto
 
     [JsonPropertyName("timestamp")] public long? Timestamp { get; set; }
 
-    [JsonPropertyName("company_name")] public string? CompanyName { get; set; }
+    [JsonPropertyName("companyname")] public string? CompanyName { get; set; }
 
-    [JsonPropertyName("first_name")] public string? FirstName { get; set; }
+    [JsonPropertyName("firstname")] public string? FirstName { get; set; }
 
-    [JsonPropertyName("last_name")] public string? LastName { get; set; }
+    [JsonPropertyName("lastname")] public string? LastName { get; set; }
 
-    [JsonPropertyName("phone_number")] public string? PhoneNumber { get; set; }
+    [JsonPropertyName("phonenumber")] public string? PhoneNumber { get; set; }
 
     [JsonPropertyName("email")] public string? Email { get; set; }
 

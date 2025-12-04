@@ -7,38 +7,45 @@ namespace csharp_ecommerce_resource.Carts;
 public class CartController(ICartService cartService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> AddCart(CartDto cartDto)
+    public ActionResult<CartDto> AddCart(CartDto cartDto)
     {
-        var cart = await cartService.AddCart(cartDto);
-        var resourceUri = Url.Action(nameof(GetCart), "Cart", new { id = cartDto.Id });
-        return Created(resourceUri, cart);
+        try
+        {
+            cartService.AddCart(cartDto);
+            var resourceUri = Url.Action(nameof(GetCart), "Cart", new { id = cartDto.Id });
+            return Created(resourceUri, cartDto);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
-    
+
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetCart(string id)
+    public ActionResult<CartDto> GetCart(string id)
     {
-        var cart = await cartService.GetCart(id);
-        return Ok(cart);
+        var cartDto = cartService.GetCart(id);
+        return Ok(cartDto);
     }
-    
+
     [HttpGet]
-    public async Task<IActionResult> GetAllCarts()
+    public ActionResult<List<CartDto>> GetAllCarts()
     {
-        var carts = await cartService.GetAllCarts();
+        var carts = cartService.GetAllCarts();
         return Ok(carts);
     }
-    
+
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCart(string id, CartDto cartDto)
+    public ActionResult<CartDto> UpdateCart(string id, CartDto cartDto)
     {
-        var updatedCart = await cartService.UpdateCart(id, cartDto);
-        return Ok(updatedCart);
+        cartService.UpdateCart(id, cartDto);
+        return Ok(cartDto);
     }
-    
+
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteCart(string id)
+    public ActionResult DeleteCart(string id)
     {
-        await cartService.DeleteCart(id);
+        cartService.DeleteCart(id);
         return Ok();
     }
 }

@@ -7,7 +7,7 @@ using csharp_ecommerce_resource.Orders;
 namespace IntegrationTests;
 
 [TestClass]
-public sealed class Test1
+public sealed class AccountTests
 {
     private static readonly HttpClient SharedClient = new()
     {
@@ -45,7 +45,7 @@ public sealed class Test1
     };
 
     [TestMethod]
-    public void CreateAccount()
+    public void AddAccount()
     {
         var httpResponseMessage = SharedClient.PostAsync("account",
                 new StringContent(JsonSerializer.Serialize(_accountDto), Encoding.UTF8, "application/json")
@@ -65,6 +65,8 @@ public sealed class Test1
         Assert.AreEqual(_accountDto.Email, accountDtoResponse.Email);
         Assert.AreEqual(_accountDto.Type, accountDtoResponse.Type);
         Assert.AreEqual(_accountDto.Active, accountDtoResponse.Active);
+
+        SharedClient.DeleteAsync("account/" + accountDtoResponse.Id).Result.EnsureSuccessStatusCode();
     }
 
     [TestMethod]
@@ -93,12 +95,14 @@ public sealed class Test1
         Assert.AreEqual(_accountDto.Email, accountDtoResponse.Email);
         Assert.AreEqual(_accountDto.Type, accountDtoResponse.Type);
         Assert.AreEqual(_accountDto.Active, accountDtoResponse.Active);
+
+        SharedClient.DeleteAsync("account/" + accountDtoResponse.Id).Result.EnsureSuccessStatusCode();
     }
 
     [TestMethod]
     public void GetAllAccounts()
     {
-        var httpResponseMessage = SharedClient.GetAsync("accounts").Result.EnsureSuccessStatusCode();
+        var httpResponseMessage = SharedClient.GetAsync("account").Result.EnsureSuccessStatusCode();
     }
 
     [TestMethod]
@@ -127,6 +131,8 @@ public sealed class Test1
         responseContent = httpResponseMessage.Content.ReadAsStringAsync().Result;
         accountDtoResponse = JsonSerializer.Deserialize<AccountDto>(responseContent);
         Assert.IsNotNull(accountDtoResponse);
+
+        SharedClient.DeleteAsync("account/" + accountDtoResponse.Id).Result.EnsureSuccessStatusCode();
     }
 
     [TestMethod]
@@ -143,60 +149,5 @@ public sealed class Test1
         Assert.IsTrue(accountDtoResponse?.Active);
 
         SharedClient.DeleteAsync("account/" + id).Result.EnsureSuccessStatusCode();
-    }
-
-    [TestMethod]
-    public void CreateOrder()
-    {
-        var httpResponseMessage = SharedClient.GetAsync("order").Result.EnsureSuccessStatusCode();
-    }
-
-    [TestMethod]
-    public void GetOrder()
-    {
-        var httpResponseMessage = SharedClient.GetAsync("order").Result.EnsureSuccessStatusCode();
-    }
-
-    [TestMethod]
-    public void GetAllOrders()
-    {
-        var httpResponseMessage = SharedClient.GetAsync("orders").Result.EnsureSuccessStatusCode();
-    }
-
-    [TestMethod]
-    public void DeleteOrder()
-    {
-        var httpResponseMessage = SharedClient.GetAsync("order").Result.EnsureSuccessStatusCode();
-    }
-
-    [TestMethod]
-    public void UpdateOrder()
-    {
-    }
-
-
-    [TestMethod]
-    public void CreateCart()
-    {
-    }
-
-    [TestMethod]
-    public void GetCart()
-    {
-    }
-
-    [TestMethod]
-    public void GetAllCarts()
-    {
-    }
-
-    [TestMethod]
-    public void UpdateCart()
-    {
-    }
-
-    [TestMethod]
-    public void DeleteCart()
-    {
     }
 }

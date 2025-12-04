@@ -9,7 +9,7 @@ Accept: application/json
   "FirstName": "My_First_Name",
   "LastName": "My_Last_Name",
   "PhoneNumber": "000-000-0000",
-  "Email": "first2.last2@email.com",
+  "Email": "foo1.bar@email.com",
   "Type": "Personal",
   "Active": true
 }
@@ -28,7 +28,7 @@ Accept: application/json
   "CompanyName": "My Company Name",
   "FirstName": "First",
   "LastName": "Last",
-  "PhoneNumber": "000-000-0000",
+  "PhoneNumber": "000-456-7890",
   "Email": "first.last@email.com",
   "Type": "Personal",
   "Active": true
@@ -82,7 +82,7 @@ GET localhost:5201/api/Order/{{order_id}}
 Accept: application/json
 
 ###
-DELETE localhost:5201/api/Account/e2a7468f-7e5b-4522-a954-22a86c822f00
+DELETE localhost:5201/api/Account/e770e464-76b3-4e1b-8c92-43a5c614a131
 Accept: application/json
 
 ###

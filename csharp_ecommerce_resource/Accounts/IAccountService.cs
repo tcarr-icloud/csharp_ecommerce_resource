@@ -38,10 +38,11 @@ public class AccountService(
     public AccountDto GetAccount(string id, string action = "GetAccount")
     {
         var accountDto = new AccountDto();
+        var evnts = dynamodbService.GetEvents("accounts", id);
         dynamodbService.GetEvents("accounts", id).ForEach(attributeValues =>
         {
             accountDto.Id = attributeValues["Id"].S;
-            accountDto.Timestamp = long.Parse(attributeValues["Timestamp"].N);
+            accountDto.Timestamp = long.Parse(attributeValues["Timestamp"].S);
             accountDto.CompanyName = attributeValues["CompanyName"].S;
             accountDto.FirstName = attributeValues["FirstName"].S;
             accountDto.LastName = attributeValues["LastName"].S;

@@ -27,10 +27,12 @@ public class DynamoDbService : IDynamodbService
     private const string CartsTableName = "carts";
     private const string OrdersTableName = "orders";
 
-    private readonly AmazonDynamoDBConfig _clientConfig = new()
+    private static readonly AmazonDynamoDBConfig ClientConfig = new()
         { RegionEndpoint = RegionEndpoint.USWest2, ServiceURL = "http://localhost:8000" };
 
-    private readonly BasicAWSCredentials _credentials = new("DUMMYIDEXAMPLE", "DUMMYEXAMPLEKEY");
+    private static readonly BasicAWSCredentials Credentials = new("DUMMYIDEXAMPLE", "DUMMYEXAMPLEKEY");
+
+    private readonly AmazonDynamoDBClient _dynamoDbService = new(Credentials, ClientConfig);
 
     public Dictionary<string, AttributeValue> AddCartAsync(CartDto cartDto)
     {
@@ -58,8 +60,7 @@ public class DynamoDbService : IDynamodbService
             }
         };
         var request = new PutItemRequest { TableName = CartsTableName, Item = cartItem };
-        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
-        var putItemResponse = dynamoDbClient.PutItemAsync(request).Result;
+        var putItemResponse = _dynamoDbService.PutItemAsync(request).Result;
         return putItemResponse.HttpStatusCode != HttpStatusCode.OK
             ? throw new Exception("Failed to add item.")
             : cartItem;
@@ -115,8 +116,7 @@ public class DynamoDbService : IDynamodbService
             }
         };
         var request = new PutItemRequest { TableName = AccountsTableName, Item = accountItem };
-        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
-        var putItemResponse = dynamoDbClient.PutItemAsync(request).Result;
+        var putItemResponse = _dynamoDbService.PutItemAsync(request).Result;
         return putItemResponse.HttpStatusCode != HttpStatusCode.OK
             ? throw new Exception("Failed to add item.")
             : accountItem;
@@ -154,8 +154,7 @@ public class DynamoDbService : IDynamodbService
             }
         };
         var request = new PutItemRequest { TableName = OrdersTableName, Item = orderItem };
-        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
-        var putItemResponse = dynamoDbClient.PutItemAsync(request).Result;
+        var putItemResponse = _dynamoDbService.PutItemAsync(request).Result;
         return putItemResponse.HttpStatusCode != HttpStatusCode.OK
             ? throw new Exception("Failed to add item.")
             : orderItem;
@@ -163,14 +162,13 @@ public class DynamoDbService : IDynamodbService
 
     public List<Dictionary<string, AttributeValue>> GetEvents(string tableName, string id)
     {
-        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
         var request = new QueryRequest
         {
             TableName = tableName, KeyConditionExpression = "Id = :id",
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 { { ":id", new AttributeValue { S = id } } }
         };
-        var response = dynamoDbClient.QueryAsync(request).Result;
+        var response = _dynamoDbService.QueryAsync(request).Result;
         return response.HttpStatusCode != HttpStatusCode.OK
             ? throw new Exception("Failed to retrieve events.")
             : response.Items;
@@ -178,7 +176,6 @@ public class DynamoDbService : IDynamodbService
 
     public HashSet<string> GetAccountByEmail(string email)
     {
-        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
         var request = new ScanRequest
         {
             TableName = AccountsTableName,
@@ -186,10 +183,8 @@ public class DynamoDbService : IDynamodbService
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 { { ":email", new AttributeValue { S = email } } }
         };
-        var response = dynamoDbClient.ScanAsync(request).Result;
-        var ids = new HashSet<string>();
-        response.Items.ForEach(item => ids.Add(item["Id"].S));
-        return ids;
+        var response = _dynamoDbService.ScanAsync(request).Result;
+        return response.Items.Select(item => item["Id"].S).ToHashSet();
     }
 
     public void DeleteItem(string tableName, string partitionKey, string sortKey)
@@ -199,41 +194,35 @@ public class DynamoDbService : IDynamodbService
             TableName = tableName,
             Key = new Dictionary<string, AttributeValue>
             {
-                { "Id", new AttributeValue { S = partitionKey }},
-                { "Timestamp", new AttributeValue { S = sortKey }}
+                { "Id", new AttributeValue { S = partitionKey } },
+                { "Timestamp", new AttributeValue { S = sortKey } }
             }
         };
 
-        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
-        var deleteResponse = dynamoDbClient.DeleteItemAsync(request).Result;
-        if (deleteResponse.HttpStatusCode != HttpStatusCode.OK)
-        {
-            throw new Exception("Failed to delete item.");
-        }
+        var deleteResponse = _dynamoDbService.DeleteItemAsync(request).Result;
+        if (deleteResponse.HttpStatusCode != HttpStatusCode.OK) throw new Exception("Failed to delete item.");
     }
 
     public List<Dictionary<string, AttributeValue>> GetKeys(string tableName, string action)
     {
-        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
         var request = new ScanRequest
         {
-            TableName = tableName, 
+            TableName = tableName,
             ProjectionExpression = "Id"
         };
-        var response = dynamoDbClient.ScanAsync(request).Result;
-        return response.Items;
+        return _dynamoDbService.ScanAsync(request).Result.Items;
     }
 
     public void DeleteAllItemsForPartitionKey(string tableName, string partitionKey)
     {
-        var dynamoDbClient = new AmazonDynamoDBClient(_credentials, _clientConfig);
         var request = new ScanRequest
         {
-            TableName = tableName, 
-            FilterExpression = "Id = :id", 
-            ExpressionAttributeValues = new Dictionary<string, AttributeValue> { { ":id", new AttributeValue { S = partitionKey } } }
+            TableName = tableName,
+            FilterExpression = "Id = :id",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                { { ":id", new AttributeValue { S = partitionKey } } }
         };
-        var response = dynamoDbClient.ScanAsync(request).Result;
+        var response = _dynamoDbService.ScanAsync(request).Result;
         response.Items.ForEach(item => DeleteItem(tableName, item["Id"].S, item["Timestamp"].S));
     }
 }
