@@ -7,7 +7,7 @@ using csharp_ecommerce_resource.Orders;
 namespace IntegrationTests;
 
 [TestClass]
-public sealed class Test1
+public sealed class CartTests
 {
     private static readonly HttpClient SharedClient = new()
     {
