@@ -4,24 +4,24 @@ namespace csharp_ecommerce_resource.Orders;
 
 public interface IOrderService
 {
-    OrderDto CreateOrder(OrderDto orderDto, string action = "CreateOrder");
-    OrderDto GetOrder(string id, string action = "GetOrder");
-    OrderDto[] GetAllOrders(string action = "GetAllOrders");
-    OrderDto UpdateOrder(string id, OrderDto orderDto, string action = "UpdateOrder");
-    void DeleteOrder(string id, string action = "DeleteOrder");
+    OrderDto Create(OrderDto orderDto, string action = "CreateOrder");
+    OrderDto Get(string id, string action = "GetOrder");
+    List<string> GetAll(string action = "GetAllOrders");
+    OrderDto Update(string id, OrderDto orderDto, string action = "UpdateOrder");
+    void Delete(string id, string action = "DeleteOrder");
 }
 
 public class OrderService(
     IDynamodbService dynamodbService,
     IKafkaProducerService kafkaProducerService) : IOrderService
 {
-    public OrderDto CreateOrder(OrderDto orderDto, string action = "CreateOrder")
+    public OrderDto Create(OrderDto orderDto, string action = "CreateOrder")
     {
         if (orderDto.Id != null) throw new Exception("OrderDto ID cannot be set manually.");
         orderDto.Id = Guid.NewGuid().ToString();
 
         if (orderDto.Timestamp != null) throw new Exception("OrderDto timestamp cannot be set manually.");
-        orderDto.Timestamp = DateTime.UtcNow;
+        orderDto.Timestamp = DateTime.UtcNow.ToBinary();
 
         dynamodbService.AddOrderAsync(orderDto);
         kafkaProducerService.SendOrderEvent(action, orderDto);
@@ -29,13 +29,13 @@ public class OrderService(
         return orderDto;
     }
 
-    public OrderDto GetOrder(string id, string action = "GetOrder")
+    public OrderDto Get(string id, string action = "GetOrder")
     {
         var orderDto = new OrderDto();
         dynamodbService.GetEvents("orders", id).ForEach(attributeValues =>
         {
             orderDto.Id = attributeValues["Id"].S;
-            orderDto.Timestamp = DateTime.Parse(attributeValues["Timestamp"].S);
+            orderDto.Timestamp = long.Parse(attributeValues["Timestamp"].S);
             orderDto.AccountId = attributeValues["AccountId"].NULL == true ? null : attributeValues["AccountId"].S;
             orderDto.CartId = attributeValues["CartId"].NULL == true ? null : attributeValues["CartId"].S;
             orderDto.Status = attributeValues["Status"].NULL == true ? null : attributeValues["Status"].S;
@@ -44,28 +44,39 @@ public class OrderService(
         return orderDto;
     }
 
-    public OrderDto[] GetAllOrders(string action = "GetAllOrders")
+    public List<string> GetAll(string action = "GetAllOrders")
     {
-        throw new NotImplementedException();
+        var list = new List<string>();
+        var keys = dynamodbService.GetKeys("orders", action);
+        foreach (var attributeValues in keys)
+        {
+            var key = attributeValues["Id"].S;
+            list.Add(key);
+        }
+
+        return list;
     }
 
-    public OrderDto UpdateOrder(string id, OrderDto orderDto, string action = "UpdateOrder")
+    public OrderDto Update(string id, OrderDto orderDto, string action = "UpdateOrder")
     {
         if (orderDto.Id == null) throw new Exception("OrderDto ID cannot be null.");
         if (orderDto.Timestamp != null) throw new Exception("OrderDto timestamp cannot be set manually.");
-        orderDto.Timestamp = DateTime.UtcNow;
-        
+        orderDto.Timestamp = DateTime.UtcNow.ToBinary();
+
         dynamodbService.AddOrderAsync(orderDto);
         kafkaProducerService.SendOrderEvent(action, orderDto);
 
         return orderDto;
     }
 
-    public void DeleteOrder(string id, string action = "DeleteOrder")
+    public void Delete(string id, string action = "DeleteOrder")
     {
-        var orderDto = GetOrder(id);
-        orderDto.Active = false;
-        orderDto.Timestamp = null;
-        UpdateOrder(id, orderDto, action);
+        dynamodbService.GetEvents("orders", id).ForEach(attributeValues =>
+        {
+            dynamodbService.DeleteItem(
+                "orders",
+                attributeValues["Id"].S,
+                attributeValues["Timestamp"].S);
+        });
     }
 }

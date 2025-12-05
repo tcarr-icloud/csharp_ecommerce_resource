@@ -5,18 +5,18 @@ namespace csharp_ecommerce_resource.Accounts;
 
 public interface IAccountService
 {
-    AccountDto CreateAccount(AccountDto accountDto, string action = "CreateAccount");
-    AccountDto GetAccount(string id, string action = "GetAccount");
-    List<string> GetAllAccounts(string action = "GetAllAccounts");
-    AccountDto UpdateAccount(string id, AccountDto accountDto, string action = "UpdateAccount");
-    void DeleteAccount(string id, string action = "DeleteAccount");
+    AccountDto Create(AccountDto accountDto, string action = "CreateAccount");
+    AccountDto Get(string id, string action = "GetAccount");
+    List<string> GetAll(string action = "GetAllAccounts");
+    AccountDto Update(string id, AccountDto accountDto, string action = "UpdateAccount");
+    void Delete(string id, string action = "DeleteAccount");
 }
 
 public class AccountService(
     IDynamodbService dynamodbService,
     IKafkaProducerService kafkaProducerService) : IAccountService
 {
-    public AccountDto CreateAccount(AccountDto accountDto, string action = "CreateAccount")
+    public AccountDto Create(AccountDto accountDto, string action = "CreateAccount")
     {
         if (accountDto.Id != null) throw new Exception("AccountDto ID cannot be set manually.");
         accountDto.Id = Guid.NewGuid().ToString();
@@ -35,10 +35,9 @@ public class AccountService(
         return accountDto;
     }
 
-    public AccountDto GetAccount(string id, string action = "GetAccount")
+    public AccountDto Get(string id, string action = "GetAccount")
     {
         var accountDto = new AccountDto();
-        var evnts = dynamodbService.GetEvents("accounts", id);
         dynamodbService.GetEvents("accounts", id).ForEach(attributeValues =>
         {
             accountDto.Id = attributeValues["Id"].S;
@@ -54,7 +53,7 @@ public class AccountService(
         return accountDto;
     }
 
-    public List<string> GetAllAccounts(string action = "GetAllAccounts")
+    public List<string> GetAll(string action = "GetAllAccounts")
     {
         var list = new List<string>();
         var keys = dynamodbService.GetKeys("accounts", action);
@@ -67,10 +66,10 @@ public class AccountService(
         return list;
     }
 
-    public AccountDto UpdateAccount(string id, AccountDto accountDto, string action = "UpdateAccount")
+    public AccountDto Update(string id, AccountDto accountDto, string action = "UpdateAccount")
     {
         if (accountDto.Id == null) throw new Exception("AccountDto ID cannot be null.");
-        var existingAccount = GetAccount(id);
+        var existingAccount = Get(id);
         if (accountDto.Email != null && accountDto.Email != existingAccount.Email)
             if (dynamodbService.GetAccountByEmail(accountDto.Email).Count > 0)
                 throw new Exception("Account with email already exists.");
@@ -84,7 +83,7 @@ public class AccountService(
         return accountDto;
     }
 
-    public void DeleteAccount(string id, string action = "DeleteAccount")
+    public void Delete(string id, string action = "DeleteAccount")
     {
         dynamodbService.GetEvents("accounts", id).ForEach(attributeValues =>
         {

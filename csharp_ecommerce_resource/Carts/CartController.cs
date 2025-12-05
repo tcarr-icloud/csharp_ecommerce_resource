@@ -11,7 +11,7 @@ public class CartController(ICartService cartService) : ControllerBase
     {
         try
         {
-            cartService.AddCart(cartDto);
+            cartService.Create(cartDto);
             var resourceUri = Url.Action(nameof(GetCart), "Cart", new { id = cartDto.Id });
             return Created(resourceUri, cartDto);
         }
@@ -24,28 +24,28 @@ public class CartController(ICartService cartService) : ControllerBase
     [HttpGet("{id}")]
     public ActionResult<CartDto> GetCart(string id)
     {
-        var cartDto = cartService.GetCart(id);
+        var cartDto = cartService.Get(id);
         return Ok(cartDto);
     }
 
     [HttpGet]
     public ActionResult<List<CartDto>> GetAllCarts()
     {
-        var carts = cartService.GetAllCarts();
+        var carts = cartService.GetAll();
         return Ok(carts);
     }
 
     [HttpPut("{id}")]
     public ActionResult<CartDto> UpdateCart(string id, CartDto cartDto)
     {
-        cartService.UpdateCart(id, cartDto);
+        cartService.Update(id, cartDto);
         return Ok(cartDto);
     }
 
     [HttpDelete("{id}")]
     public ActionResult DeleteCart(string id)
     {
-        cartService.DeleteCart(id);
+        cartService.Delete(id);
         return Ok();
     }
 }

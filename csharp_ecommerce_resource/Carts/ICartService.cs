@@ -6,18 +6,18 @@ namespace csharp_ecommerce_resource.Carts;
 
 public interface ICartService
 {
-    CartDto AddCart(CartDto cartDto, string action = "AddCart");
-    CartDto GetCart(string id, string action = "GetCart");
-    List<string> GetAllCarts(string action = "GetAllCarts");
-    CartDto UpdateCart(string id, CartDto cartDto, string action = "UpdateCart");
-    void DeleteCart(string id, string action = "DeleteCart");
+    CartDto Create(CartDto cartDto, string action = "AddCart");
+    CartDto Get(string id, string action = "GetCart");
+    List<string> GetAll(string action = "GetAllCarts");
+    CartDto Update(string id, CartDto cartDto, string action = "UpdateCart");
+    void Delete(string id, string action = "DeleteCart");
 }
 
 public class CartService(
     IDynamodbService dynamodbService,
     IKafkaProducerService kafkaProducerService) : ICartService
 {
-    public CartDto AddCart(CartDto cartDto, string action = "AddCart")
+    public CartDto Create(CartDto cartDto, string action = "AddCart")
     {
         if (cartDto.Id != null) throw new Exception("CartDto ID cannot be set manually.");
         cartDto.Id = Guid.NewGuid().ToString();
@@ -31,7 +31,7 @@ public class CartService(
         return cartDto;
     }
 
-    public CartDto GetCart(string id, string action = "GetCart")
+    public CartDto Get(string id, string action = "GetCart")
     {
         var cartDto = new CartDto();
         dynamodbService.GetEvents("carts", id).ForEach(attributeValues =>
@@ -49,7 +49,7 @@ public class CartService(
         return cartDto;
     }
 
-    public List<string> GetAllCarts(string action = "GetAllCarts")
+    public List<string> GetAll(string action = "GetAllCarts")
     {
         var list = new List<string>();
         var keys = dynamodbService.GetKeys("carts", action);
@@ -62,7 +62,7 @@ public class CartService(
         return list;
     }
 
-    public CartDto UpdateCart(string id, CartDto cartDto, string action = "UpdateCart")
+    public CartDto Update(string id, CartDto cartDto, string action = "UpdateCart")
     {
         if (cartDto.Id == null) throw new Exception("CartDto ID cannot be null.");
         if (cartDto.Timestamp != null) throw new Exception("CartDto timestamp cannot be set manually.");
@@ -74,7 +74,7 @@ public class CartService(
         return cartDto;
     }
 
-    public void DeleteCart(string id, string action = "DeleteCart")
+    public void Delete(string id, string action = "DeleteCart")
     {
         dynamodbService.GetEvents("carts", id).ForEach(attributeValues =>
         {

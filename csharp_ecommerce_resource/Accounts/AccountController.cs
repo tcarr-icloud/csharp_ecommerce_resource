@@ -11,7 +11,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
     {
         try
         {
-            accountService.CreateAccount(accountDto);
+            accountService.Create(accountDto);
             var resourceUri = Url.Action(nameof(GetAccount), "Account", new { id = accountDto.Id });
             return Created(resourceUri, accountDto);
         }
@@ -24,28 +24,28 @@ public class AccountController(IAccountService accountService) : ControllerBase
     [HttpGet("{id}")]
     public ActionResult<AccountDto> GetAccount(string id)
     {
-        var accountDto = accountService.GetAccount(id);
+        var accountDto = accountService.Get(id);
         return Ok(accountDto);
     }
 
     [HttpGet]
     public ActionResult<List<AccountDto>> GetAllAccounts()
     {
-        var accounts = accountService.GetAllAccounts();
+        var accounts = accountService.GetAll();
         return Ok(accounts);
     }
 
     [HttpPut("{id}")]
     public ActionResult<AccountDto> UpdateAccount(string id, [FromBody] AccountDto accountDto)
     {
-        accountService.UpdateAccount(id, accountDto);
+        accountService.Update(id, accountDto);
         return Ok(accountDto);
     }
 
     [HttpDelete("{id}")]
     public ActionResult DeleteAccount(string id)
     {
-        accountService.DeleteAccount(id);
+        accountService.Delete(id);
         return Ok();
     }
 }
